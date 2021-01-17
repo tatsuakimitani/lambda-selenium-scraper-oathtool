@@ -126,7 +126,7 @@ def post_slack():
     try:
         response = client.chat_postMessage(
             channel=channel,
-            text="Emergency Alert <@channel>")
+            text="Emergency Alert <!channel>")
     except SlackApiError as e:
         # You will get a SlackApiError if "ok" is False
         assert e.response["ok"] is False
