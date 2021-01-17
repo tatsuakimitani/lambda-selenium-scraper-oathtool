@@ -25,6 +25,8 @@ __pycache__
 # driver selenim
 driver/
 selenium/
+oathtool/
+slacker/
 
 # *.otf 
 # e.g. NotoSansCJKjp-Regular.otf

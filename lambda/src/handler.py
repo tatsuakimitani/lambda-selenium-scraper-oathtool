@@ -27,8 +27,6 @@ from selenium.webdriver.support.ui import Select
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.keys import Keys
 
-import const
-
 # set up Logger
 import logging
 import sys
@@ -42,7 +40,6 @@ handler.setFormatter(logging.Formatter(
 logger.addHandler(handler)
 logger.setLevel(logging.INFO)
 #logger.setLevel(logging.DEBUG)
-
 
 
 def set_selenium_options():
@@ -105,9 +102,9 @@ def terminate_driver(driver):
 def get_otp():
     """ get One Time Password """
     logging.info("OTP取得を開始します。")
-    secret_key = const.MFA_SECRET_NAME
+    secret_key = MFA_SECRET_NAME
     secret_info = get_secret(secret_key)
-    secret = secret_info.get(const.MFA_SECRET_KEY)
+    secret = secret_info.get(MFA_SECRET_KEY)
     otp = oathtool.generate_otp(secret)
     logging.info("OTP取得を完了しました。")
     return otp
@@ -117,9 +114,9 @@ def post_slack():
     logging.info("slack通知を開始します。")
 
     # APIトークンを指定
-    secret_key = const.SLACK_BOT_SECRET_NAME
+    secret_key = SLACK_BOT_SECRET_NAME
     secret_info = get_secret(secret_key)
-    token = secret_info.get(const.SLACK_BOT_SECRET_KEY)
+    token = secret_info.get(SLACK_BOT_SECRET_KEY)
     print(token)
     # アップロードするチャンネルを指定
     channel = '#test_publish'
@@ -206,8 +203,8 @@ def main(event, context):
 
     driver = None
     target = None
-    url = const.LOGIN_TARGET_URL
-    login_info = get_secret(const.LOGIN_INFO_SECRET_NAME)
+    url = LOGIN_TARGET_URL
+    login_info = get_secret(LOGIN_INFO_SECRET_NAME)
     login_id = login_info.get('username')
     login_pw = login_info.get('password')
     logging.info(login_id)
@@ -219,7 +216,7 @@ def main(event, context):
         logging.info("ログインページへアクセスします。")
         driver.get(url)
         presented = wait_until_element_present(
-            driver, By.ID, const.LOGIN_LOCATION)
+            driver, By.ID, LOGIN_LOCATION)
         filename = 'ss_' + datetime.datetime.now().strftime('%Y%m%d_%H%M%S' + '.png')
         save_screenshot(driver, filename)
 
@@ -235,7 +232,7 @@ def main(event, context):
         save_screenshot(driver, filename)
         button_login.click()
         presented = wait_until_element_present(
-            driver, By.ID, const.MFA_PAGE_LOCATION)
+            driver, By.ID, MFA_PAGE_LOCATION)
 
         logging.info("ログインに成功しました。MFAコードを入力します。")
         second_pass = get_otp()
@@ -250,19 +247,19 @@ def main(event, context):
         second_button_login.click()
 
         presented = wait_until_element_present(
-            driver, By.XPATH, const.CONSOLE_LOCATION)
+            driver, By.XPATH, CONSOLE_LOCATION)
         logging.info("コンソールへのログインに成功しました。")
         filename = 'ss_' + datetime.datetime.now().strftime('%Y%m%d_%H%M%S' + '.png')
         save_screenshot(driver, filename)
 
-        driver.get(const.DASHBOARD_URL)
+        driver.get(DASHBOARD_URL)
         presented = wait_until_element_present(
-            driver, By.ID, const.DASHBOARD_LOCATION)
+            driver, By.ID, DASHBOARD_LOCATION)
         
         filename = 'ss_' + datetime.datetime.now().strftime('%Y%m%d_%H%M%S' + '.png')
         save_screenshot(driver, filename)
         if presented is not None:
-            target = driver.find_element_by_xpath(const.LOGIN_LOCATION).text
+            target = driver.find_element_by_xpath(LOGIN_LOCATION).text
         post_slack()
         endtime = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         logging.info("endtime: {}".format(endtime))

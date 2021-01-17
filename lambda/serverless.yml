@@ -25,18 +25,6 @@ provider:
       Action:
         - "lambda:InvokeFunction"
         - "lambda:InvokeAsync"
-        - "s3:ListBucket"
-        - "s3:GetObject"
-        - "s3:PutObject"
-        - "s3:DeleteObject"
-      Resource:
-        Fn::Join:
-          - ""
-          - - "arn:aws:s3:::"
-            - ${self:custom.projectDir}-${self:custom.stage}
-            - "/*"
-    - Effect: 'Allow'
-      Action:
         - secretsmanager:GetSecretValue
       Resource:
         - "*"
@@ -47,24 +35,15 @@ plugins:
 
 functions:
   main:
-    handler: handler.main
+    handler: src/handler.main
     layers:
       - ${cf:${self:custom.seleniumLayer}-${self:custom.stage}.SeleniumLayerExport}
       - ${cf:${self:custom.seleniumLayer}-${self:custom.stage}.ChromedriverLayerExport}
       - ${cf:${self:custom.seleniumLayer}-${self:custom.stage}.OathtoolLayerExport}
       - ${cf:${self:custom.seleniumLayer}-${self:custom.stage}.SlackerLayerExport}
-    environment:
-      S3BUCKET: ${self:custom.projectDir}-${self:custom.stage}
     # events:
 #      - schedule: cron(0/40 * * * ? *)  # 毎日40分おき
       # - schedule: cron(3 * * * ? *) #毎日NN時03分おき
 package:
   include: 
     - '.fonts/**'
-
-resources:
-  Resources:
-    Bucket:
-      Type: AWS::S3::Bucket
-      Properties:
-        BucketName: ${self:custom.projectDir}-${self:custom.stage}

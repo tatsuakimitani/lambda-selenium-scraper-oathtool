@@ -1,5 +1,5 @@
 #!/bin/bash
-
+BASEDIR=$(dirname $0)
 set -e
 
 #CHROMEVERSION="v1.0.0-45"
@@ -21,3 +21,14 @@ rm -rf chromedriver.zip
 
 mkdir -p selenium-layer/driver/
 mv chromedriver headless-chromium selenium-layer/driver/
+
+cd selenium-layer/
+pip3 install -t selenium/python/lib/python3.7/site-packages selenium
+pip3 install -t oathtool/python/lib/python3.7/site-packages oathtool
+pip3 install -t slacker/python/lib/python3.7/site-packages Slacker
+
+npm install
+
+cd $BASEDIR/lambda/
+npm install
+cd $BASEDIR/
