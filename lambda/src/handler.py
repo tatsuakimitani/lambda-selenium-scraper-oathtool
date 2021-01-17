@@ -42,6 +42,7 @@ logger.addHandler(handler)
 logger.setLevel(logging.INFO)
 #logger.setLevel(logging.DEBUG)
 
+# set up constants
 
 def set_selenium_options():
     """ Set selenium options """
@@ -214,7 +215,6 @@ def delete_local_screenshot():
 def main(event, context):
     """ Entrypoint of lambda """
     otp = get_otp()
-    logging.info(otp)
     
     # Debug event to CloudWatch log
     starttime = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
@@ -237,9 +237,7 @@ def main(event, context):
         driver.get(url)
         presented = wait_until_element_present(
             driver, By.ID, LOGIN_LOCATION)
-        filename = 'ss_' + datetime.datetime.now().strftime('%Y%m%d_%H%M%S' + '.png')
-        save_screenshot(driver, filename)
-
+        
         logging.info("ログインページへアクセスしました。")
         input_id = driver.find_element_by_name('username')
         input_password = driver.find_element_by_name('password')
@@ -247,9 +245,7 @@ def main(event, context):
         input_password.send_keys(login_pw)
         button_login = driver.find_element_by_class_name('buttoninput')
         logging.info("ログインボタンを押下します。")
-        filename = 'ss_' + datetime.datetime.now().strftime('%Y%m%d_%H%M%S' + '.png')
-
-        save_screenshot(driver, filename)
+        
         button_login.click()
         presented = wait_until_element_present(
             driver, By.ID, MFA_PAGE_LOCATION)
@@ -260,18 +256,14 @@ def main(event, context):
         second_input_pass.send_keys(second_pass)
         logging.info("MFA送信ボタンを押下します。")
 
-        filename = 'ss_' + datetime.datetime.now().strftime('%Y%m%d_%H%M%S' + '.png')
-        save_screenshot(driver, filename)
-
         second_button_login = driver.find_element_by_class_name('css3button')
         second_button_login.click()
 
         presented = wait_until_element_present(
             driver, By.XPATH, CONSOLE_LOCATION)
         logging.info("コンソールへのログインに成功しました。")
-        filename = 'ss_' + datetime.datetime.now().strftime('%Y%m%d_%H%M%S' + '.png')
-        save_screenshot(driver, filename)
 
+        # CloudWatchダッシュボードへアクセス
         driver.get(DASHBOARD_URL)
         presented = wait_until_element_present(
             driver, By.ID, DASHBOARD_LOCATION)
@@ -279,7 +271,21 @@ def main(event, context):
         filename = 'ss_' + datetime.datetime.now().strftime('%Y%m%d_%H%M%S' + '.png')
         save_screenshot(driver, filename)
         if presented is not None:
-            target = driver.find_element_by_xpath(LOGIN_LOCATION).text
+            target = driver.find_element_by_xpath(DASHBOARD_LOCATION).text
+
+        # PerformanceInsightへアクセス
+        driver.get(PI_URL)
+        presented = wait_until_element_present(
+            driver, By.XPATH, PI_LOCATION)
+        change_duration_button = driver.find_element_by_xpath(PI_LOCATION)
+        change_duration_button.click()
+        driver.implicitly_wait(20)
+
+        filename = 'ss_' + datetime.datetime.now().strftime('%Y%m%d_%H%M%S' + '.png')
+        save_screenshot(driver, filename)
+        if presented is not None:
+            target = driver.find_element_by_xpath(PI_LOCATION).text
+
         post_slack()
 
         delete_local_screenshot()
