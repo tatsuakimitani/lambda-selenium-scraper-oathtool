@@ -15,7 +15,7 @@
 (lambda-selenium-scraper-oathtool)$ cd selenium-layer
 (selenium-layer)$ pip3 install -t selenium/python/lib/python3.7/site-packages selenium
 (selenium-layer)$ pip3 install -t oathtool/python/lib/python3.7/site-packages oathtool
-(selenium-layer)$ pip3 install -t slacker/python/lib/python3.7/site-packages Slacker
+(selenium-layer)$ pip3 install -t slackclient/python/lib/python3.7/site-packages slackclient
 ```
 
 ## npm install for layer

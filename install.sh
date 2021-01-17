@@ -25,7 +25,7 @@ mv chromedriver headless-chromium selenium-layer/driver/
 cd selenium-layer/
 pip3 install -t selenium/python/lib/python3.7/site-packages selenium
 pip3 install -t oathtool/python/lib/python3.7/site-packages oathtool
-pip3 install -t slacker/python/lib/python3.7/site-packages Slacker
+pip3 install -t slackclient/python/lib/python3.7/site-packages slackclient
 
 npm install
 

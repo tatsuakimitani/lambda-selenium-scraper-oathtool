@@ -40,7 +40,7 @@ functions:
       - ${cf:${self:custom.seleniumLayer}-${self:custom.stage}.SeleniumLayerExport}
       - ${cf:${self:custom.seleniumLayer}-${self:custom.stage}.ChromedriverLayerExport}
       - ${cf:${self:custom.seleniumLayer}-${self:custom.stage}.OathtoolLayerExport}
-      - ${cf:${self:custom.seleniumLayer}-${self:custom.stage}.SlackerLayerExport}
+      - ${cf:${self:custom.seleniumLayer}-${self:custom.stage}.SlackclientLayerExport}
     # events:
 #      - schedule: cron(0/40 * * * ? *)  # 毎日40分おき
       # - schedule: cron(3 * * * ? *) #毎日NN時03分おき

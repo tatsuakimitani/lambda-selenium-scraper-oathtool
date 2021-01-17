@@ -37,6 +37,11 @@ layers:
     description: slacker layer
     CompatibleRuntimes:
       - ${self:custom.pythonVer}
+  slackclient:
+    path: slackclient
+    description: slackclient layer
+    CompatibleRuntimes:
+      - ${self:custom.pythonVer}
 
 resources:
   Outputs:
@@ -55,8 +60,8 @@ resources:
         Ref: OathtoolLambdaLayer
       Export:
         Name: OathtoolLambdaLayer
-    SlackerLayerExport:
+    SlackclientLayerExport:
       Value:
-        Ref: SlackerLambdaLayer
+        Ref: SlackclientLambdaLayer
       Export:
-        Name: SlackerLambdaLayer
+        Name: SlackclientLambdaLayer

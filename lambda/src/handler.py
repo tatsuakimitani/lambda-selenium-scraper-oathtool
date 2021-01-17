@@ -9,7 +9,8 @@ import traceback
 
 import oathtool
 
-from slacker import Slacker
+from slack import WebClient
+from slack.errors import SlackApiError
 
 import boto3
 import base64
@@ -112,24 +113,31 @@ def get_otp():
 def post_slack():
     """ POST to slack """
     logging.info("slack通知を開始します。")
-
     # APIトークンを指定
     secret_key = SLACK_BOT_SECRET_NAME
     secret_info = get_secret(secret_key)
     token = secret_info.get(SLACK_BOT_SECRET_KEY)
-    print(token)
+    client = WebClient(token=token)
+
     # アップロードするチャンネルを指定
     channel = '#test_publish'
+
     # 絶対パスを指定
     files = glob.glob('/tmp/*.png')
-    for file in files:
-        slacker = Slacker(token)
-        slacker.files.upload(file_=file, channels=channel)
-        logging.debug(file + "をslackへ投稿しました。")
-    # 複数ファイルアップロードはslackAPIはサポート外
-    # slacker = Slacker(token)
-    # slacker.files.upload(files=files, channels=channel)
 
+    # 複数ファイルアップロードはslackAPIはサポート外
+    for file in files:
+        try:
+            response = client.files_upload(
+                channels=channel,
+                file=file)
+            assert response["file"]  # the uploaded file
+            logging.debug(file + "をslackへ投稿しました。")
+        except SlackApiError as e:
+            # You will get a SlackApiError if "ok" is False
+            assert e.response["ok"] is False
+            assert e.response["error"]  # str like 'invalid_auth', 'channel_not_found'
+            print(f"Got an error: {e.response['error']}")
     logging.info("slack通知が終了しました")
 
 def get_secret(secret_name):
