@@ -120,8 +120,19 @@ def post_slack():
     client = WebClient(token=token)
 
     # アップロードするチャンネルを指定
-    channel = '#test_publish'
+    channel = SLACK_CHANNEL
 
+    try:
+        response = client.chat_postMessage(
+            channel=channel,
+            text="Emergency Alert <@channel>")
+    except SlackApiError as e:
+        # You will get a SlackApiError if "ok" is False
+        assert e.response["ok"] is False
+        assert e.response["error"]  # str like 'invalid_auth', 'channel_not_found'
+        logger.error("[ERROR] Got an error: " + {e.response['error']})
+
+    thread_ts = response["ts"]
     # 絶対パスを指定
     files = glob.glob('/tmp/*.png')
 
@@ -130,14 +141,15 @@ def post_slack():
         try:
             response = client.files_upload(
                 channels=channel,
-                file=file)
+                file=file,
+                thread_ts=thread_ts)
             assert response["file"]  # the uploaded file
             logging.debug(file + "をslackへ投稿しました。")
         except SlackApiError as e:
             # You will get a SlackApiError if "ok" is False
             assert e.response["ok"] is False
             assert e.response["error"]  # str like 'invalid_auth', 'channel_not_found'
-            print(f"Got an error: {e.response['error']}")
+            logger.error("[ERROR] Got an error: " + {e.response['error']})
     logging.info("slack通知が終了しました")
 
 def get_secret(secret_name):
@@ -269,6 +281,8 @@ def main(event, context):
         if presented is not None:
             target = driver.find_element_by_xpath(LOGIN_LOCATION).text
         post_slack()
+
+        delete_local_screenshot()
         endtime = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         logging.info("endtime: {}".format(endtime))
         terminate_driver(driver)
@@ -278,6 +292,7 @@ def main(event, context):
         }
     except Exception as e:
         logger.error("[ERROR] {e}".format(e=e))
+        delete_local_screenshot()
         terminate_driver(driver)
         return {
             "statusCode": 400,
