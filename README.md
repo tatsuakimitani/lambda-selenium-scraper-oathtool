@@ -37,7 +37,7 @@
 (lambda)$ npm install
 ```
 
-## layer deploy
+## Lambda deploy
 ```
 (lambda-selenium-scraper-oathtool)$ cd lambda
 (lambda)$ cp config/.env.tmpl config/.env
