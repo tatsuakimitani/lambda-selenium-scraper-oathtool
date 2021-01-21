@@ -40,9 +40,36 @@ handler.setFormatter(logging.Formatter(
     '%(levelname)s %(asctime)s [%(funcName)s] %(message)s'))
 logger.addHandler(handler)
 logger.setLevel(logging.INFO)
-#logger.setLevel(logging.DEBUG)
 
-# set up constants
+# AWS SecretManager LOGIN secret key
+LOGIN_INFO_SECRET_NAME = 'mitani-test/login-information'
+# login url
+LOGIN_TARGET_URL = 'https://<account-number>.signin.aws.amazon.com/console'
+# login page check element
+LOGIN_LOCATION = 'accountFields'
+
+# AWS SecretManager MFA secret key
+MFA_SECRET_NAME = '<account-name>/mfa/secret-key'
+MFA_SECRET_KEY = 'mfa-secret-key'
+# mfa page check element
+MFA_PAGE_LOCATION = 'mfaHeaderMessage'
+
+# AWS SecretManager slack bot api key 
+SLACK_BOT_SECRET_NAME = '<account-name>/slackbot/token'
+SLACK_BOT_SECRET_KEY = 'slack-bot-token'
+
+SLACK_CHANNEL = '#<slack-channel-name>'
+
+# console page(after login) check element
+CONSOLE_LOCATION = "//*[@id='content']/div/h1/span[1]"
+
+# dashboard page(after login) url
+DASHBOARD_URL = 'https://console.aws.amazon.com/cloudwatch/home?region=us-east-1#dashboards:name=default-dashuboard;start=P1D'
+# dashboard page(after login) check element
+DASHBOARD_LOCATION = 'react-select-4--value-item'
+
+PI_URL = 'https://ap-northeast-1.console.aws.amazon.com/rds/home?region=ap-northeast-1#performance-insights-v20206:/resourceId/db-NWRPAI73PB6UAXZ7H2X2WN2WQQ/resourceName/<RDS Instance name>/startTime/1610782907360/endTime/1610869307360'
+PI_LOCATION = '//*[@id="c"]/div[2]/awsui-app-layout/div/main/div[2]/div/div/div[2]/div/div[1]/div[2]/div[2]/div/div/div[2]/div/div[1]/div[2]/div/awsui-segmented-control/div/div[2]/button[4]'
 
 def set_selenium_options():
     """ Set selenium options """
@@ -111,7 +138,23 @@ def get_otp():
     logging.info("OTP取得を完了しました。")
     return otp
 
-def post_slack():
+def create_slack_message(event):
+    if not event:
+        slack_message = "Emergency Alert (Test)<!channel>"
+    else:
+        message = json.loads(event['Records'][0]['Sns']['Message'])
+        logger.info("Message: " + str(message))
+
+        alarm_name = message['AlarmName']
+        new_state = message['NewStateValue']
+        reason = message['NewStateReason']
+        description = message['AlarmDescription']
+    
+        slack_message = "Emergency Alert <!channel> \nアラーム名： %s\nステータス： %s\nアラーム理由： %s\n説明： %s" % (alarm_name, new_state, reason, description)
+        print(slack_message)
+    return slack_message
+
+def post_slack(message):
     """ POST to slack """
     logging.info("slack通知を開始します。")
     # APIトークンを指定
@@ -126,7 +169,7 @@ def post_slack():
     try:
         response = client.chat_postMessage(
             channel=channel,
-            text="Emergency Alert <!channel>")
+            text=message)
     except SlackApiError as e:
         # You will get a SlackApiError if "ok" is False
         assert e.response["ok"] is False
@@ -163,9 +206,6 @@ def get_secret(secret_name):
         service_name='secretsmanager',
         region_name=region
     )
-    # In this sample we only handle the specific exceptions for the 'GetSecretValue' API.
-    # See https://docs.aws.amazon.com/secretsmanager/latest/apireference/API_GetSecretValue.html
-    # We rethrow the exception by default.
     try:
         get_secret_value_response = client.get_secret_value(
             SecretId=secret_name
@@ -215,7 +255,9 @@ def delete_local_screenshot():
 def main(event, context):
     """ Entrypoint of lambda """
     otp = get_otp()
-    
+
+    slack_message = create_slack_message(event)
+
     # Debug event to CloudWatch log
     starttime = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     logging.info("starttime: {}".format(starttime))
@@ -286,7 +328,7 @@ def main(event, context):
         if presented is not None:
             target = driver.find_element_by_xpath(PI_LOCATION).text
 
-        post_slack()
+        post_slack(slack_message)
 
         delete_local_screenshot()
         endtime = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')

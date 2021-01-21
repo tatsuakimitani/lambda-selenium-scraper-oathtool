@@ -1,6 +1,6 @@
 #!/bin/bash
-BASEDIR=$(dirname $0)
 set -e
+BASEDIR=$(dirname $0)
 
 #CHROMEVERSION="v1.0.0-45"
 #DRIVERVERSION="2.40"
@@ -29,6 +29,6 @@ pip3 install -t slackclient/python/lib/python3.7/site-packages slackclient
 
 npm install
 
-cd $BASEDIR/lambda/
+cd ../lambda/
 npm install
 cd $BASEDIR/

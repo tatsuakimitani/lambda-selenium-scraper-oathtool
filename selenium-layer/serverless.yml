@@ -32,11 +32,6 @@ layers:
     description: oathtool layer
     CompatibleRuntimes:
       - ${self:custom.pythonVer}
-  slacker:
-    path: slacker
-    description: slacker layer
-    CompatibleRuntimes:
-      - ${self:custom.pythonVer}
   slackclient:
     path: slackclient
     description: slackclient layer
